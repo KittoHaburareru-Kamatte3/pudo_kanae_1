@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>送迎管理アプリ</title>
+    <link rel="stylesheet" href="thepudomitame.css">
+</head>
+<body>
+    <div id="auth-section" class="auth-section">
+        <h1>送迎管理アプリ</h1>
+        <p>Googleアカウントでログインしてください。</p>
+        <button id="login-btn" type="button">Googleログイン</button>
+        <button id="logout-btn" type="button" hidden>ログアウト</button>
+        <div id="status" role="status"></div>
+    </div>
+    <div id="app-section" class="app-section">
+        <h1>送迎管理アプリ</h1>
+        <div class="course-list" id="course-list"></div>
+        <div id="course-detail" class="course-detail">
+            <h2 id="course-title"></h2>
+            <div>
+                <h3>車両 (1台まで)</h3>
+                <div id="vehicle-zone" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            </div>
+            <div>
+                <h3>職員 (3名まで)</h3>
+                <div id="staff-zone" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            </div>
+            <div>
+                <h3>利用者 (9名まで)</h3>
+                <div id="user-zone" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            </div>
+        </div>
+        <div id="available-cards">
+            <h3>未割り当てフィールド</h3>
+            <div id="vehicle-cards"></div>
+            <div id="staff-cards"></div>
+            <div id="user-cards"></div>
+        </div>
+        <div id="error-message" class="error"></div>
+    </div>
+
+    <script type="module" src="thepudointeractive.js"></script>
+</body>
+</html>
