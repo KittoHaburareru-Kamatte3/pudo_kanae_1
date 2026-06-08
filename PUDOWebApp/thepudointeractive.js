@@ -31,15 +31,99 @@ const defaultAssignments = {
     'コース9': { vehicle: [], staff: [], users: [] },
     'コース10': { vehicle: [], staff: [], users: [] }
 };
-const masterItems = {
-    vehicles: Array.from({length: 10}, (_, i) => ({ name: `車両${i + 1}`, note: '' })),
-    staff: Array.from({length: 15}, (_, i) => ({ name: `職員${i + 1}`, note: '' })),
-    users: Array.from({length: 60}, (_, i) => ({ name: `利用者${i + 1}`, note: '' }))
+let masterItems = {
+    vehicles: [],
+    staff: [],
+    users: []
 };
 
 let currentCourse = null;
 let assignments = JSON.parse(JSON.stringify(defaultAssignments));
 let available = JSON.parse(JSON.stringify(masterItems));
+
+// CSVをパースする簡易関数
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let insideQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+            result.push(current.trim().replace(/^"|"$/g, ''));
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    result.push(current.trim().replace(/^"|"$/g, ''));
+    return result;
+}
+
+// Google Sheetsからデータを取得
+async function loadMasterItemsFromSheet() {
+    const SHEET_ID = '1jtV3hAk6HW3clmDW3tFkj9GsbVcWmY9ZV6JQ4ONyLpc';
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+    
+    try {
+        const response = await fetch(CSV_URL);
+        if (!response.ok) throw new Error('Sheet fetch failed');
+        
+        const csv = await response.text();
+        const lines = csv.trim().split('\n');
+        
+        if (lines.length < 2) throw new Error('Sheet has no data');
+        
+        // CSVをパース - 最初の行はヘッダー
+        const headers = parseCSVLine(lines[0]);
+        const vehicleIndex = headers.indexOf('車両名');
+        const staffIndex = headers.indexOf('職員名');
+        const userIndex = headers.indexOf('利用者名');
+        
+        console.log('Headers:', headers);
+        console.log('Column indices - vehicle:', vehicleIndex, 'staff:', staffIndex, 'user:', userIndex);
+        
+        masterItems = {
+            vehicles: [],
+            staff: [],
+            users: []
+        };
+        
+        // データ行をパース
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue; // 空行をスキップ
+            
+            const row = parseCSVLine(lines[i]);
+            
+            if (vehicleIndex >= 0 && row[vehicleIndex] && row[vehicleIndex].length > 0) {
+                masterItems.vehicles.push({ name: row[vehicleIndex], note: '' });
+            }
+            if (staffIndex >= 0 && row[staffIndex] && row[staffIndex].length > 0) {
+                masterItems.staff.push({ name: row[staffIndex], note: '' });
+            }
+            if (userIndex >= 0 && row[userIndex] && row[userIndex].length > 0) {
+                masterItems.users.push({ name: row[userIndex], note: '' });
+            }
+        }
+        
+        // 重複を除去
+        masterItems.vehicles = [...new Map(masterItems.vehicles.map(v => [v.name, v])).values()];
+        masterItems.staff = [...new Map(masterItems.staff.map(s => [s.name, s])).values()];
+        masterItems.users = [...new Map(masterItems.users.map(u => [u.name, u])).values()];
+        
+        console.log('Sheet data loaded:', masterItems);
+    } catch (error) {
+        console.error('Failed to load sheet data:', error);
+        // エラーの場合はデフォルト値を使用
+        masterItems = {
+            vehicles: Array.from({length: 10}, (_, i) => ({ name: `車両${i + 1}`, note: '' })),
+            staff: Array.from({length: 15}, (_, i) => ({ name: `職員${i + 1}`, note: '' })),
+            users: Array.from({length: 60}, (_, i) => ({ name: `利用者${i + 1}`, note: '' }))
+        };
+    }
+}
 
 const sanitizeText = value => value.replace(/[^0-9A-Za-z\u3040-\u309F\u30A0-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/g, '');
 
@@ -77,7 +161,9 @@ onAuthStateChanged(auth, user => {
     }
 });
 
-function initApp() {
+async function initApp() {
+    await loadMasterItemsFromSheet();
+    available = JSON.parse(JSON.stringify(masterItems));
     renderCourseList();
     attachDatabaseListeners();
 }
