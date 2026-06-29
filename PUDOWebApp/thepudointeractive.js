@@ -1,7 +1,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-import { getDatabase, ref, get, onValue, set } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+import { getDatabase, ref, get, onValue, set, update } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
@@ -40,83 +40,39 @@ let masterItems = {
 let currentCourse = null;
 let assignments = JSON.parse(JSON.stringify(defaultAssignments));
 let available = JSON.parse(JSON.stringify(masterItems));
+let editableItems = [];
+const defaultEditableItems = {
+    item1: { label: 'サンプル1', note: 'ここを編集できます' },
+    item2: { label: 'サンプル2', note: '簡単に更新できます' }
+};
 
-// CSVをパースする簡易関数
-function parseCSVLine(line) {
-    const result = [];
-    let current = '';
-    let insideQuotes = false;
-    
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-            insideQuotes = !insideQuotes;
-        } else if (char === ',' && !insideQuotes) {
-            result.push(current.trim().replace(/^"|"$/g, ''));
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-    result.push(current.trim().replace(/^"|"$/g, ''));
-    return result;
+function normalizeMasterItems(value) {
+    const normalizeList = list => Array.isArray(list)
+        ? list.map(item => typeof item === 'string'
+            ? { name: item, note: '' }
+            : { name: item.name || '', note: item.note || '' })
+        : [];
+
+    return {
+        vehicles: normalizeList(value.vehicles),
+        staff: normalizeList(value.staff),
+        users: normalizeList(value.users)
+    };
 }
 
-// Google Sheetsからデータを取得
-async function loadMasterItemsFromSheet() {
-    const SHEET_ID = '1jtV3hAk6HW3clmDW3tFkj9GsbVcWmY9ZV6JQ4ONyLpc';
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
-    
+async function loadMasterItemsFromDatabase() {
+    const masterItemsRef = ref(database, 'masterItems');
+
     try {
-        const response = await fetch(CSV_URL);
-        if (!response.ok) throw new Error('Sheet fetch failed');
-        
-        const csv = await response.text();
-        const lines = csv.trim().split('\n');
-        
-        if (lines.length < 2) throw new Error('Sheet has no data');
-        
-        // CSVをパース - 最初の行はヘッダー
-        const headers = parseCSVLine(lines[0]);
-        const vehicleIndex = headers.indexOf('車両名');
-        const staffIndex = headers.indexOf('職員名');
-        const userIndex = headers.indexOf('利用者名');
-        
-        console.log('Headers:', headers);
-        console.log('Column indices - vehicle:', vehicleIndex, 'staff:', staffIndex, 'user:', userIndex);
-        
-        masterItems = {
-            vehicles: [],
-            staff: [],
-            users: []
-        };
-        
-        // データ行をパース
-        for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue; // 空行をスキップ
-            
-            const row = parseCSVLine(lines[i]);
-            
-            if (vehicleIndex >= 0 && row[vehicleIndex] && row[vehicleIndex].length > 0) {
-                masterItems.vehicles.push({ name: row[vehicleIndex], note: '' });
-            }
-            if (staffIndex >= 0 && row[staffIndex] && row[staffIndex].length > 0) {
-                masterItems.staff.push({ name: row[staffIndex], note: '' });
-            }
-            if (userIndex >= 0 && row[userIndex] && row[userIndex].length > 0) {
-                masterItems.users.push({ name: row[userIndex], note: '' });
-            }
+        const snapshot = await get(masterItemsRef);
+        if (snapshot.exists()) {
+            masterItems = normalizeMasterItems(snapshot.val());
+            console.log('Loaded masterItems from Firebase:', masterItems);
+        } else {
+            throw new Error('Firebase masterItems not found');
         }
-        
-        // 重複を除去
-        masterItems.vehicles = [...new Map(masterItems.vehicles.map(v => [v.name, v])).values()];
-        masterItems.staff = [...new Map(masterItems.staff.map(s => [s.name, s])).values()];
-        masterItems.users = [...new Map(masterItems.users.map(u => [u.name, u])).values()];
-        
-        console.log('Sheet data loaded:', masterItems);
     } catch (error) {
-        console.error('Failed to load sheet data:', error);
-        // エラーの場合はデフォルト値を使用
+        console.error('Failed to load masterItems from Firebase:', error);
         masterItems = {
             vehicles: Array.from({length: 10}, (_, i) => ({ name: `車両${i + 1}`, note: '' })),
             staff: Array.from({length: 15}, (_, i) => ({ name: `職員${i + 1}`, note: '' })),
@@ -162,10 +118,11 @@ onAuthStateChanged(auth, user => {
 });
 
 async function initApp() {
-    await loadMasterItemsFromSheet();
+    await loadMasterItemsFromDatabase();
     available = JSON.parse(JSON.stringify(masterItems));
     renderCourseList();
     attachDatabaseListeners();
+    attachEditableListListeners();
 }
 
 function showAuthSection() {
@@ -371,6 +328,122 @@ function saveAssignments() {
     set(ref(database, 'assignments'), assignments).catch(error => {
         showError('保存に失敗しました。' + error.message);
     });
+}
+
+function attachEditableListListeners() {
+    const editableItemsRef = ref(database, 'editableItems');
+
+    get(editableItemsRef).then(snapshot => {
+        if (!snapshot.exists()) {
+            set(editableItemsRef, defaultEditableItems);
+        }
+    }).catch(error => showError('一覧データの初期化に失敗しました。' + error.message));
+
+    onValue(editableItemsRef, snapshot => {
+        const value = snapshot.val() || {};
+        editableItems = Object.entries(value).map(([id, item]) => ({
+            id,
+            label: item?.label || '',
+            note: item?.note || ''
+        }));
+        renderEditableList();
+    });
+}
+
+function renderEditableList() {
+    const container = document.getElementById('editable-list');
+    container.innerHTML = '';
+
+    if (!editableItems.length) {
+        const emptyState = document.createElement('p');
+        emptyState.className = 'empty-state';
+        emptyState.textContent = 'まだデータがありません。';
+        container.appendChild(emptyState);
+        return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'editable-list';
+
+    editableItems.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'editable-row';
+
+        const summary = document.createElement('div');
+        summary.className = 'editable-summary';
+
+        const title = document.createElement('strong');
+        title.textContent = item.label || '（名称未設定）';
+
+        const note = document.createElement('small');
+        note.textContent = item.note || '備考なし';
+
+        summary.appendChild(title);
+        summary.appendChild(note);
+
+        const editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.className = 'edit-button';
+        editButton.textContent = '編集';
+        editButton.addEventListener('click', () => showEditableEditor(item.id));
+
+        row.appendChild(summary);
+        row.appendChild(editButton);
+        list.appendChild(row);
+    });
+
+    container.appendChild(list);
+}
+
+function showEditableEditor(id) {
+    const item = editableItems.find(entry => entry.id === id);
+    if (!item) return;
+
+    const container = document.getElementById('editable-list');
+    container.querySelectorAll('.editable-editor').forEach(element => element.remove());
+
+    const editor = document.createElement('div');
+    editor.className = 'editable-editor';
+
+    const labelInput = document.createElement('input');
+    labelInput.type = 'text';
+    labelInput.value = item.label || '';
+    labelInput.placeholder = '項目名';
+
+    const noteInput = document.createElement('input');
+    noteInput.type = 'text';
+    noteInput.value = item.note || '';
+    noteInput.placeholder = '備考';
+
+    const actions = document.createElement('div');
+    actions.className = 'editable-editor-actions';
+
+    const saveButton = document.createElement('button');
+    saveButton.type = 'button';
+    saveButton.className = 'save-button';
+    saveButton.textContent = '保存';
+    saveButton.addEventListener('click', async () => {
+        const updatedLabel = labelInput.value.trim();
+        const updatedNote = noteInput.value.trim();
+        await update(ref(database, `editableItems/${id}`), {
+            label: updatedLabel,
+            note: updatedNote
+        });
+        clearError();
+    });
+
+    const cancelButton = document.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.className = 'cancel-button';
+    cancelButton.textContent = 'キャンセル';
+    cancelButton.addEventListener('click', () => editor.remove());
+
+    actions.appendChild(saveButton);
+    actions.appendChild(cancelButton);
+    editor.appendChild(labelInput);
+    editor.appendChild(noteInput);
+    editor.appendChild(actions);
+    container.appendChild(editor);
 }
 
 function showError(msg) {
