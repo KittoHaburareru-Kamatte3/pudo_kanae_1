@@ -423,8 +423,10 @@ function showEditableEditor(id) {
     saveButton.className = 'save-button';
     saveButton.textContent = '保存';
     saveButton.addEventListener('click', async () => {
-        const updatedLabel = labelInput.value.trim();
-        const updatedNote = noteInput.value.trim();
+        const updatedLabel = sanitizeText(labelInput.value.trim());
+        const updatedNote = sanitizeText(noteInput.value.trim());
+        labelInput.value = updatedLabel;
+        noteInput.value = updatedNote;
         await update(ref(database, `editableItems/${id}`), {
             label: updatedLabel,
             note: updatedNote
