@@ -1,26 +1,45 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 5px;
-    padding: 5px;
-    background-color: #ffffff;
-    color: #000000;
+    margin: 0;
+    padding: 12px;
+    background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);
+    color: #111827;
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 .auth-section {
     display: block;
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.08);
 }
 .app-section {
     display: none;
+    max-width: 1100px;
+    margin: 0 auto;
 }
 .course-list {
     margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 .course-item {
     display: inline-block;
-    margin: 2px;
-    padding: 5px;
+    margin: 0;
+    padding: 8px 10px;
     border: 1px solid #000;
     cursor: pointer;
     background-color: #f0f0f0;
+    min-width: 72px;
+    text-align: center;
 }
 .course-item:hover {
     background-color: #e0e0e0;
@@ -33,10 +52,11 @@ body {
 .card {
     display: inline-block;
     margin: 2px;
-    padding: 5px;
+    padding: 8px;
     border: 1px solid #000;
     cursor: move;
     background-color: #fff;
+    min-width: 120px;
 }
 .vehicle-card { background-color: #ffcccc; }
 .staff-card { background-color: #cce7ff; }
@@ -45,41 +65,97 @@ body {
     border: 2px solid #000;
 }
 .drop-zone {
-    min-height: 50px;
+    min-height: 60px;
     border: 1px dashed #000;
-    padding: 5px;
-    margin: 2px;
+    padding: 8px;
+    margin: 2px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
 }
 .error {
     color: #ff0000;
     font-weight: bold;
 }
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+        font-size: 15px;
+    }
+
+    h1, h2, h3 {
+        margin-top: 0.5em;
+    }
+
+    .course-list {
+        flex-direction: column;
+    }
+
     .course-item {
         display: block;
         width: 100%;
+    }
+
+    .course-detail,
+    .data-editor-panel {
+        padding: 10px;
+    }
+
+    .editable-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .edit-button,
+    .save-button,
+    .cancel-button {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .editable-editor-actions {
+        flex-direction: column;
+    }
+
+    .card {
+        display: block;
+        width: 100%;
+        margin: 4px 0;
+    }
+
+    .drop-zone {
+        min-height: 70px;
     }
 }
 
 #login-btn,
 #logout-btn {
     display: inline-block;
-    margin: 5px 5px 10px 0;
-    padding: 8px 14px;
-    border: 1px solid #000;
-    background-color: #f8f8f8;
-    color: #000;
+    margin: 6px 6px 10px 0;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #ffffff;
     cursor: pointer;
+    font-weight: 600;
 }
 
 #login-btn:hover,
 #logout-btn:hover {
-    background-color: #e0e0e0;
+    background-color: #1d4ed8;
 }
 
 #status {
     margin-top: 10px;
     color: #333;
+}
+
+.auth-copy,
+.app-copy {
+    color: #4b5563;
+    line-height: 1.5;
 }
 
 .data-editor-panel {

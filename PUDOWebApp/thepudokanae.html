@@ -2,20 +2,28 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="送迎管理">
     <title>送迎管理アプリ</title>
     <link rel="stylesheet" href="thepudomitame.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
     <div id="auth-section" class="auth-section">
         <h1>送迎管理アプリ</h1>
-        <p>Googleアカウントでログインしてください。</p>
+        <p class="auth-copy">職員用の送迎管理画面です。ログインするとすぐに確認・更新できます。</p>
+        <p class="auth-copy">Googleアカウントでログインしてください。</p>
         <button id="login-btn" type="button">Googleログイン</button>
         <button id="logout-btn" type="button" hidden>ログアウト</button>
         <div id="status" role="status"></div>
     </div>
     <div id="app-section" class="app-section">
         <h1>送迎管理アプリ</h1>
+        <p class="app-copy">職員用の簡易メモ・管理画面です。必要な情報をすぐ確認できます。</p>
         <section class="data-editor-panel">
             <h2>登録データ一覧</h2>
             <p class="panel-description">Firebaseの内容を一覧で確認し、必要な項目をその場で編集できます。</p>

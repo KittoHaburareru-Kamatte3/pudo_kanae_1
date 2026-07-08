@@ -1,0 +1,15 @@
+{
+  "name": "送迎管理アプリ",
+  "short_name": "送迎管理",
+  "start_url": "./thepudokanae.html",
+  "display": "standalone",
+  "background_color": "#f8fbff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

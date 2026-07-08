@@ -1,6 +1,6 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import { getDatabase, ref, get, onValue, set, update } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -19,6 +19,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
 const allowedEmail = 'kanae5173@gmail.com';
+
+setPersistence(auth, browserLocalPersistence).catch(error => {
+    showError('認証設定の初期化に失敗しました。' + error.message);
+});
 const defaultAssignments = {
     'コース1': { vehicle: [], staff: [], users: [] },
     'コース2': { vehicle: [], staff: [], users: [] },
@@ -90,12 +94,18 @@ const statusEl = document.getElementById('status');
 loginBtn.addEventListener('click', () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider).catch(error => {
-        showError('ログインに失敗しました。' + error.message);
+        handleAuthError(error, 'ログイン');
     });
 });
 
-logoutBtn.addEventListener('click', () => {
-    signOut(auth);
+logoutBtn.addEventListener('click', async () => {
+    try {
+        await signOut(auth);
+        showStatus('ログアウトしました。ログイン画面に戻ります。');
+        showAuthSection();
+    } catch (error) {
+        handleAuthError(error, 'ログアウト');
+    }
 });
 
 onAuthStateChanged(auth, user => {
@@ -106,9 +116,10 @@ onAuthStateChanged(auth, user => {
             logoutBtn.hidden = false;
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('app-section').style.display = 'block';
+            clearError();
             initApp();
         } else {
-            signOut(auth);
+            signOut(auth).catch(error => handleAuthError(error, '認証確認'));
             showStatus('アクセス権のあるアカウントでログインしてください。');
             showAuthSection();
         }
@@ -130,10 +141,30 @@ function showAuthSection() {
     document.getElementById('app-section').style.display = 'none';
     logoutBtn.hidden = true;
     loginBtn.hidden = false;
+    clearError();
 }
 
 function showStatus(message) {
     statusEl.textContent = message;
+}
+
+function handleAuthError(error, action) {
+    const code = error?.code || '';
+    let message = `${action}に失敗しました。`;
+
+    if (code === 'auth/popup-closed-by-user') {
+        message = 'ログイン画面を閉じたため、ログインは中止されました。もう一度お試しください。';
+    } else if (code === 'auth/popup-blocked') {
+        message = 'ポップアップがブロックされました。ポップアップを許可してから再度お試しください。';
+    } else if (code === 'auth/network-request-failed') {
+        message = 'ネットワーク接続を確認してから、もう一度お試しください。';
+    } else if (code === 'auth/unauthorized-domain') {
+        message = 'このサイトは Google 認証の許可ドメインに追加されていません。管理者にお問い合わせください。';
+    } else if (error?.message) {
+        message = `${message}\n${error.message}`;
+    }
+
+    showError(message);
 }
 
 function attachDatabaseListeners() {
