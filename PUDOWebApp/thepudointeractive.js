@@ -1,6 +1,6 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import { getDatabase, ref, get, onValue, set, update } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -23,6 +23,16 @@ const allowedEmail = 'kanae5173@gmail.com';
 setPersistence(auth, browserLocalPersistence).catch(error => {
     showError('認証設定の初期化に失敗しました。' + error.message);
 });
+
+getRedirectResult(auth).then(result => {
+    if (result && result.user) {
+        // リダイレクト後の認証完了を onAuthStateChanged が処理するため、ここでは特別な処理は不要です。
+        console.log('Redirect authentication successful', result.user.email);
+    }
+}).catch(error => {
+    handleAuthError(error, 'ログイン');
+});
+
 const defaultAssignments = {
     'コース1': { vehicle: [], staff: [], users: [] },
     'コース2': { vehicle: [], staff: [], users: [] },
@@ -93,7 +103,7 @@ const statusEl = document.getElementById('status');
 
 loginBtn.addEventListener('click', () => {
     const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider).catch(error => {
+    signInWithRedirect(auth, provider).catch(error => {
         handleAuthError(error, 'ログイン');
     });
 });
