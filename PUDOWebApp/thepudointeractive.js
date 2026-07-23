@@ -18,7 +18,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
-const allowedEmail = 'kanae5173@gmail.com';
+const allowedEmail = 'kanaewebapp.2026@gmail.com';
 
 setPersistence(auth, browserLocalPersistence).catch(error => {
     showError('認証設定の初期化に失敗しました。' + error.message);
