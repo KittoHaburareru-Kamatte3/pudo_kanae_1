@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="送迎割り当てアプリ">
+    <title>送迎割り当てWebアプリ</title>
+    <link rel="stylesheet" href="thepudomitame.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+</head>
+<body>
+    <div id="auth-section" class="auth-section">
+        <h1>送迎割り当てWebアプリ</h1>
+        <p class="auth-copy">福祉事業所の送迎担当者向けアプリです。</p>
+        <p class="auth-copy">Googleアカウントでログインして、送迎の割り当てを確認・管理してください。</p>
+        <button id="login-btn" type="button">Googleログイン</button>
+    </div>
+
+    <div id="app-section" class="app-section">
+        <header class="app-header">
+            <div>
+                <h1>送迎割り当て画面</h1>
+                <p class="app-copy">ログイン後に、車両・職員・利用者の割り当てを操作できます。</p>
+            </div>
+            <button id="logout-btn" type="button">ログアウト</button>
+        </header>
+
+        <section class="data-editor-panel">
+            <h2>登録データ一覧</h2>
+            <p class="panel-description">登録済みの項目を確認して、その場で編集できます。</p>
+            <div id="editable-list" class="editable-list"></div>
+        </section>
+
+        <div class="course-list" id="course-list"></div>
+        <section id="course-detail" class="course-detail">
+            <h2 id="course-title"></h2>
+            <div>
+                <h3>車両</h3>
+                <div id="vehicle-zone" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            </div>
+            <div>
+                <h3>職員</h3>
+                <div id="staff-zone" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            </div>
+            <div>
+                <h3>利用者</h3>
+                <div id="user-zone" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            </div>
+        </section>
+
+        <section id="available-cards">
+            <h3>未割り当て一覧</h3>
+            <div id="vehicle-cards"></div>
+            <div id="staff-cards"></div>
+            <div id="user-cards"></div>
+        </section>
+    </div>
+
+    <div id="status" role="status"></div>
+    <div id="error-message" class="error"></div>
+
+    <script type="module" src="thepudointeractive.js"></script>
+</body>
+</html>
