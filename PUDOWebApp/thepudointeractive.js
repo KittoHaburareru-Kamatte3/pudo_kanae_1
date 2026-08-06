@@ -112,7 +112,7 @@ logoutBtn.addEventListener('click', async () => {
     try {
         await signOut(auth);
         showStatus('ログアウトしました。ログイン画面に戻ります。');
-        showAuthSection();
+        window.location.replace('index.html');
     } catch (error) {
         handleAuthError(error, 'ログアウト');
     }
@@ -124,9 +124,15 @@ onAuthStateChanged(auth, user => {
             statusEl.textContent = `${user.email} としてログインしています`;
             loginBtn.hidden = true;
             logoutBtn.hidden = false;
+            clearError();
+
+            if (window.location.pathname.endsWith('index.html')) {
+                window.location.replace('sougeiwarihontai.html');
+                return;
+            }
+
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('app-section').style.display = 'block';
-            clearError();
             initApp();
         } else {
             signOut(auth).catch(error => handleAuthError(error, '認証確認'));
@@ -134,6 +140,10 @@ onAuthStateChanged(auth, user => {
             showAuthSection();
         }
     } else {
+        if (window.location.pathname.endsWith('sougeiwarihontai.html')) {
+            window.location.replace('index.html');
+            return;
+        }
         showAuthSection();
     }
 });

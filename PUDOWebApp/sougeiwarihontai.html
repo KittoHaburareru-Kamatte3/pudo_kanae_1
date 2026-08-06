@@ -6,53 +6,62 @@
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="送迎管理">
-    <title>送迎管理アプリ</title>
+    <meta name="apple-mobile-web-app-title" content="送迎割り当てアプリ">
+    <title>送迎割り当てWebアプリ</title>
     <link rel="stylesheet" href="thepudomitame.css">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
-    <div id="auth-section" class="auth-section">
-        <h1>送迎管理アプリ</h1>
-        <p class="auth-copy">職員用の送迎管理画面です。ログインするとすぐに確認・更新できます。</p>
-        <p class="auth-copy">Googleアカウントでログインしてください。</p>
+    <div id="auth-section" class="auth-section" style="display:none;">
+        <h1>送迎割り当てWebアプリ</h1>
+        <p class="auth-copy">ログインが必要です。Googleアカウントで認証してください。</p>
         <button id="login-btn" type="button">Googleログイン</button>
-        <button id="logout-btn" type="button" hidden>ログアウト</button>
-        <div id="status" role="status"></div>
     </div>
+
     <div id="app-section" class="app-section">
-        <h1>送迎管理アプリ</h1>
-        <p class="app-copy">職員用の簡易メモ・管理画面です。必要な情報をすぐ確認できます。</p>
+        <header class="app-header">
+            <div>
+                <h1>送迎割り当て画面</h1>
+                <p class="app-copy">カードを各コースへドラッグ＆ドロップして割り当てます。</p>
+            </div>
+            <button id="logout-btn" type="button">ログアウト</button>
+        </header>
+
         <section class="data-editor-panel">
             <h2>登録データ一覧</h2>
-            <p class="panel-description">Firebaseの内容を一覧で確認し、必要な項目をその場で編集できます。</p>
+            <p class="panel-description">登録済みの項目を確認して、その場で編集できます。</p>
             <div id="editable-list" class="editable-list"></div>
         </section>
+
         <div class="course-list" id="course-list"></div>
-        <div id="course-detail" class="course-detail">
+
+        <section id="course-detail" class="course-detail">
             <h2 id="course-title"></h2>
             <div>
-                <h3>車両 (1台まで)</h3>
+                <h3>車両</h3>
                 <div id="vehicle-zone" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
             </div>
             <div>
-                <h3>職員 (3名まで)</h3>
+                <h3>職員</h3>
                 <div id="staff-zone" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
             </div>
             <div>
-                <h3>利用者 (9名まで)</h3>
+                <h3>利用者</h3>
                 <div id="user-zone" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
             </div>
-        </div>
-        <div id="available-cards">
-            <h3>未割り当てフィールド</h3>
+        </section>
+
+        <section id="available-cards">
+            <h3>未割り当て一覧</h3>
             <div id="vehicle-cards"></div>
             <div id="staff-cards"></div>
             <div id="user-cards"></div>
-        </div>
-        <div id="error-message" class="error"></div>
+        </section>
     </div>
+
+    <div id="status" role="status"></div>
+    <div id="error-message" class="error"></div>
 
     <script type="module" src="thepudointeractive.js"></script>
 </body>
