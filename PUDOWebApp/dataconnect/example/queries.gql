@@ -1,0 +1,79 @@
+mutation CreateVehicle($name: String!) @auth(level: PUBLIC, insecureReason: "Publicly accessible list of available vehicles.") {
+  vehicle_insert(data: {name: $name})
+}
+
+mutation UpdateVehicle($id: UUID!, $name: String!) @auth(level: PUBLIC, insecureReason: "Publicly accessible list of available vehicles.") {
+  vehicle_update(id: $id, data: {name: $name})
+}
+
+mutation DeleteVehicle($id: UUID!) @auth(level: PUBLIC, insecureReason: "Publicly accessible list of available vehicles.") {
+  vehicle_delete(id: $id)
+}
+
+query GetVehicle($id: UUID!) @auth(level: PUBLIC, insecureReason: "Publicly accessible list of available vehicles.") {
+  vehicle(id: $id) { name }
+}
+
+query ListVehicles @auth(level: PUBLIC, insecureReason: "Publicly accessible list of available vehicles.") {
+  vehicles { name }
+}
+
+mutation CreateStaff($name: String!) @auth(level: USER) {
+  staff_insert(data: {name: $name})
+}
+
+mutation UpdateStaff($id: UUID!, $name: String!) @auth(level: USER) {
+  staff_update(id: $id, data: {name: $name})
+}
+
+mutation DeleteStaff($id: UUID!) @auth(level: USER) {
+  staff_delete(id: $id)
+}
+
+query GetStaff($id: UUID!) @auth(level: USER) {
+  staff(id: $id) { name }
+}
+
+query ListStaff @auth(level: USER) {
+  staffs { name }
+}
+
+mutation CreateClient($name: String!, $vehicleId: UUID) @auth(level: USER) {
+  client_insert(data: {name: $name, currentVehicleId: $vehicleId})
+}
+
+mutation UpdateClient($id: UUID!, $name: String!) @auth(level: USER) {
+  client_update(id: $id, data: {name: $name})
+}
+
+mutation DeleteClient($id: UUID!) @auth(level: USER) {
+  client_delete(id: $id)
+}
+
+query GetClient($id: UUID!) @auth(level: USER) {
+  client(id: $id) { name currentVehicle { name } }
+}
+
+query ListClients @auth(level: USER) {
+  clients { name }
+}
+
+mutation CreateAssignment($date: Date!, $vehicleId: UUID!, $clientId: UUID!, $staffId: UUID) @auth(level: USER) {
+  assignment_insert(data: {date: $date, vehicleId: $vehicleId, clientId: $clientId, staffId: $staffId})
+}
+
+mutation UpdateAssignment($id: UUID!, $date: Date!) @auth(level: USER) {
+  assignment_update(id: $id, data: {date: $date})
+}
+
+mutation DeleteAssignment($id: UUID!) @auth(level: USER) {
+  assignment_delete(id: $id)
+}
+
+query GetAssignment($id: UUID!) @auth(level: USER) {
+  assignment(id: $id) { date vehicle { name } client { name } }
+}
+
+query ListAssignments @auth(level: USER) {
+  assignments { date vehicle { name } client { name } }
+}

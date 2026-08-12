@@ -1,0 +1,28 @@
+type Vehicle @table {
+  name: String!
+}
+
+type Staff @table {
+  name: String!
+}
+
+type Client @table {
+  name: String!
+  # 現在の所属先（車両）または未割り当てであることを示すための参照
+  currentVehicle: Vehicle
+}
+
+type Assignment @table {
+  # 割り当ての日付
+  date: Date!
+  
+  # どの車両か
+  vehicle: Vehicle!
+  
+  # 誰が担当か
+  staff: Staff
+  
+  # どの利用者を乗せるか（1対1の関係を複数保持するため、
+  # 割り当てに対して利用者が紐づく構造にしています）
+  client: Client!
+}
